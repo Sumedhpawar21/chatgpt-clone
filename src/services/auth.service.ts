@@ -36,6 +36,28 @@ export const loginService = async (id_token: string) => {
         userId: user.id,
       },
     });
+  } else {
+    const existingSubscription = await db.subscriptions.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!existingSubscription) {
+      const smallestPlan = await db.plans.findFirst({
+        orderBy: {
+          max_messages: "asc",
+        },
+      });
+
+      if (smallestPlan) {
+        await db.subscriptions.create({
+          data: {
+            usage: 0,
+            planId: smallestPlan.id,
+            userId: user.id,
+          },
+        });
+      }
+    }
   }
   const token = generateToken(user);
   return { user, token };

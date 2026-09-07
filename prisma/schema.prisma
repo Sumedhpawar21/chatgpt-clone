@@ -67,7 +67,7 @@ model Subscriptions {
   id        String   @id @default(uuid())
   planId    String
   userId    String   @unique
-  usage     Int
+  usage     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 

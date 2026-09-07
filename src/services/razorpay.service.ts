@@ -2,6 +2,7 @@ import crypto from "crypto"
 import { db } from "../configs/db.config.js"
 import { envConfig } from "../configs/env.config.js"
 import { razorpayClient } from "../configs/razorpay.config.js"
+import { applyPlanChangeWithCreditCarryover } from "./subscription.service.js"
 import type { AuthUser } from "../middlewares/auth.middleware.js"
 
 function assertRazorpayConfigured() {
@@ -126,18 +127,7 @@ export async function verifyPaymentService(
       data: { status: "SUCCESS", paymentId: razorpay_payment_id },
     })
 
-    await db.subscriptions.upsert({
-      where: { userId: payment.userId },
-      create: {
-        usage: 0,
-        planId: payment.planId,
-        userId: payment.userId,
-      },
-      update: {
-        usage: 0,
-        planId: payment.planId,
-      },
-    })
+    await applyPlanChangeWithCreditCarryover(payment.userId, payment.planId)
 
     return { success: true, message: "Payment verified successfully" }
   } catch {
